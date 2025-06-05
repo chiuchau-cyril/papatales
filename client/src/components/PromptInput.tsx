@@ -1,7 +1,7 @@
 "use client"; // Required for useState and event handlers
 
 import React, { useState } from 'react';
-import { generateScript, generateImage, ScriptPage } from '@/lib/api';
+import { generateScript, ScriptPage } from '@/lib/api';
 
 interface PromptInputProps {
   onScriptGenerated: (script: ScriptPage[]) => void;
@@ -36,29 +36,9 @@ const PromptInput: React.FC<PromptInputProps> = ({
       const scriptPages = await generateScript(prompt);
       onScriptGenerated(scriptPages);
 
-      // 2. Parse script and generate images for each page
-      if (scriptPages && scriptPages.length > 0) {
-        const imageUrls: string[] = [];
-        // Limit to 3 pages for now to avoid too many API calls during development
-        const pagesToProcess = scriptPages.slice(0, 3);
-
-        for (const page of pagesToProcess) {
-          if (page.illustration_prompt_en) {
-            try {
-              const imageUrl = await generateImage(page.illustration_prompt_en);
-              imageUrls.push(imageUrl);
-            } catch (imgError) {
-              console.error(`Failed to generate image for prompt: "${page.illustration_prompt_en}"`, imgError);
-              // Continue generating other images even if one fails
-              imageUrls.push('/placeholder-image.png'); // Add a placeholder or skip
-            }
-          } else {
-            // Handle cases where illustration prompt might be missing
-            imageUrls.push('/placeholder-image.png');
-          }
-        }
-        onImagesGenerated(imageUrls);
-      } else {
+      // 2. 目前無法產生圖片，直接清空 imageUrls
+      onImagesGenerated([]);
+      if (!scriptPages || scriptPages.length === 0) {
         onError('Generated script was empty or invalid.');
       }
     } catch (error) {
@@ -87,7 +67,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
         disabled={isLoading}
       />
       <p className="mt-2 text-sm text-gray-600">
-        Tip: For best results and character consistency, describe your characters in detail (e.g., 'a curious robot with blue eyes and a red antenna') within your main story prompt.
+        Tip: For best results and character consistency, describe your characters in detail (e.g., &apos;a curious robot with blue eyes and a red antenna&apos;) within your main story prompt.
       </p>
       <button
         onClick={handleSubmit}
